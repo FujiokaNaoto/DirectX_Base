@@ -1,0 +1,2 @@
+# DirectX_Base
+DirectX9を使用しているwindowsプログラムベースシステム
