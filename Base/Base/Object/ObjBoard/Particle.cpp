@@ -1,0 +1,245 @@
+//**プログラムヘッダ***************************************************************
+//	プログラム概要	:	エフェクトパーティクルクラス実装
+//*********************************************************************************
+
+
+//==include部======================================================================
+#include "../../System/GameManager.h"
+#include "Particle.h"
+//=================================================================================
+
+
+//==定数・列挙型部=================================================================
+//=================================================================================
+
+
+//==マクロ定義部===================================================================
+
+//=================================================================================
+
+
+//==クラス・構造体宣言部===========================================================
+
+//=================================================================================
+
+
+//==静的メンバ変数部===============================================================
+
+//=================================================================================
+
+
+//==プロトタイプ宣言===============================================================
+
+//=================================================================================
+
+
+//**関数***************************************************************************
+//	概要	:	コンストラクタ
+//*********************************************************************************
+CParticle::CParticle():
+m_nLifeCnt(0),
+m_nLife(0),
+m_nInFrame(2),
+m_nOutFrame(2),
+m_nRed(255),
+m_nBlue(255),
+m_nGreen(255),
+m_nAlpha(1)
+{
+	m_nStatus = eParticleConst::STATE_IN;				// 最初はフェードインモード
+	m_nRSType = eRSType::PARTICLE;
+	m_nRSTypeLate = eRSType::PARTICLE_LATE;
+}
+
+
+//**関数***************************************************************************
+//	概要	:	デストラクタ
+//*********************************************************************************
+CParticle::~CParticle()
+{
+}
+
+
+//**関数***************************************************************************
+//	概要	:	生成
+//*********************************************************************************
+CParticle* CParticle::Create(LPCTSTR texName , ParticleParam param , int nWidth , int nHeight , int nSceneID , int nPri)
+{
+	CParticle* pObj = new CParticle();
+
+	if(pObj->Init(texName , param , nWidth , nHeight ,nSceneID , nPri))
+		return pObj;
+
+	SAFE_DELETE(pObj);
+	return NULL;
+}
+
+
+//**関数***************************************************************************
+//	概要	:	初期化
+//*********************************************************************************
+bool CParticle::Init(LPCTSTR texName , ParticleParam param , int nWidth , int nHeight , int nSceneID , int nPri)
+{
+	if(! CObjBoard::Init(texName , DEFAULT_POS , nWidth , nHeight , nSceneID , nPri))
+		return false;
+
+	m_bBillFlg = false;
+	SetDiffuse(m_nRed , m_nGreen , m_nBlue , 0);
+
+	ParamSet(param);								// パーティクルパラメータセット
+
+	return true;
+}
+
+
+//**関数***************************************************************************
+//	概要	:	パーティクルパラメータセット
+//*********************************************************************************
+void CParticle::ParamSet(ParticleParam param)
+{
+	m_Pos = param.ParInitPos;
+	m_Spd = param.ParInitSpd;
+	m_Scall = param.ParInitScall;
+	m_Rot = param.ParInitRot;
+
+	m_Accel = param.ParAccel;
+	m_RotSpd = param.ParRotSpd;
+	m_ScallSpd = param.ParScallSpd;
+
+	m_nLife = param.nParLife;
+	m_nInFrame = param.nInFrame;
+	m_nOutFrame = param.nOutFrame;
+
+	m_nRed = param.nRed;
+	m_nGreen = param.nGreen;
+	m_nBlue = param.nBlue;
+
+	if(m_nAlpha > 0)
+		m_nAlpha = param.nAlpha;
+	else
+		m_nAlpha = 1;
+
+	SetDiffuse(m_nRed , m_nGreen , m_nBlue , 0);
+}
+
+
+//**関数***************************************************************************
+//	概要	:	更新
+//*********************************************************************************
+void	CParticle::Update()
+{
+	m_Spd += m_Accel;
+	
+	m_Pos += m_Spd;
+	m_Rot += m_RotSpd;
+	m_Scall += m_ScallSpd;
+
+	// 生存確認
+	m_nLifeCnt ++;
+	if(m_nLifeCnt >= m_nLife)
+	{
+		m_bDeleteFlg = true;
+		return;
+	}
+
+	// 透明度変更
+	int nAlpha = 255;
+	switch(m_nStatus)
+	{
+	case eParticleConst::STATE_IN:
+		nAlpha = (int)(((float)m_nLifeCnt / (float)m_nInFrame) * (float)m_nAlpha);
+		SetDiffuse(m_nRed , m_nGreen , m_nBlue , nAlpha);
+
+		if(m_nLifeCnt >= m_nInFrame)
+		{
+			SetDiffuse(m_nRed , m_nGreen , m_nBlue , m_nAlpha);
+			m_nStatus = eParticleConst::STATE_UPDATE;
+		}
+		break;
+
+	case eParticleConst::STATE_UPDATE:
+		if(m_nLifeCnt >= m_nLife - m_nOutFrame)
+			m_nStatus = eParticleConst::STATE_OUT;
+		break;
+
+	case eParticleConst::STATE_OUT:
+		nAlpha = (int)(m_nAlpha - ((float)m_nAlpha * ((float)m_nLife - (float)m_nLifeCnt) / (float)m_nOutFrame));
+		SetDiffuse(m_nRed , m_nGreen , m_nBlue , nAlpha);
+		break;
+	}
+}
+
+
+//**関数***************************************************************************
+//	概要	:	レンダーステートセット
+//*********************************************************************************
+void CParticle::SetRS()
+{
+	CGraphics::SemafoLock();
+
+	LPDIRECT3DDEVICE9 pDevice = MANAGER.GetGraph()->GetDevice();
+
+	pDevice->SetFVF(FVF_VERTEX_BOARD);
+
+	pDevice->SetRenderState(D3DRS_ZENABLE , TRUE);
+	pDevice->SetRenderState(D3DRS_LIGHTING , FALSE);
+	pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+
+	pDevice->SetRenderState(D3DRS_CULLMODE , D3DCULL_NONE);				// カリングオフ
+
+	//pDevice->SetRenderState(D3DRS_DESTBLEND , D3DBLEND_INVSRCALPHA);
+
+	// 合成パターン
+	pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	//pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+	pDevice->SetRenderState(D3DRS_DESTBLEND , D3DBLEND_ONE);
+
+	CGraphics::SemafoUnlock();
+}
+
+
+//**関数***************************************************************************
+//	概要	:	後描画レンダーステートセット
+//*********************************************************************************
+void CParticle::SetRSLate()
+{
+	CGraphics::SemafoLock();
+
+	// グラフィックデバイス取得
+	LPDIRECT3DDEVICE9 pDevice = MANAGER.GetGraph()->GetDevice();
+
+	// 頂点ストリーム設定
+	pDevice->SetFVF(FVF_VERTEX_BOARD);
+
+	pDevice->SetRenderState(D3DRS_CULLMODE , D3DCULL_NONE);				// カリングオフ
+
+	// 描画設定
+	pDevice->SetRenderState(D3DRS_ZENABLE , TRUE);						// Zバッファオン
+	pDevice->SetRenderState(D3DRS_LIGHTING , FALSE);					// ライトオフ
+	pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);				// アルファブレンドあり
+	
+
+	// 合成パターン
+	pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	//pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+	pDevice->SetRenderState(D3DRS_DESTBLEND , D3DBLEND_ONE);
+
+	CGraphics::SemafoUnlock();
+}
+
+
+//**関数***************************************************************************
+//	概要	:	色コードセット
+//*********************************************************************************
+void CParticle::SetRGBA(int R , int G , int B , int A)
+{
+	m_nRed = R;
+	m_nGreen = G;
+	m_nBlue = B;
+
+	if(A > 0) m_nAlpha = A;
+	else m_nAlpha = 1;
+}
+//=================================================================================
+//	End of File
+//=================================================================================
