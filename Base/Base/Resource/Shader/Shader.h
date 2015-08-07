@@ -4,7 +4,10 @@
 #pragma once
 
 //==include部======================================================================
-
+#include <tchar.h>
+#include <d3d9.h>
+#include <d3dx9.h>
+#include "../../Object/Base/CHANDLE.h"
 //=================================================================================
 
 
@@ -19,7 +22,36 @@
 
 
 //==クラス・構造体宣言部===========================================================
+class CShader
+{
+protected:
+	int				m_nType;							// シェーダタイプ格納変数
+	S_HANDLE		m_unHandle;							// 自身のハンドル
 
+	UINT			m_unPassNum;						// パスの番号
+	D3DXHANDLE		m_hTech;							// テクニックのハンドル
+	LPD3DXEFFECT	m_pFx;								// エフェクトオブジェクト
+	
+
+public:
+	CShader();
+	virtual	~CShader();
+	
+	virtual	void		Release();						// 解放
+
+	virtual	UINT		BeginShader();					// シェーダ開始(パスの数を返す)
+	virtual	void		BeginPass(UINT nPassNo = 0);	// パスの番号を指定し、パス開始
+
+	virtual void		UpdateShader();					// シェーダ更新
+	virtual void		EndPass();
+	virtual void		EndShader();					// シェーダ終了
+	
+	virtual S_HANDLE	GetHandle(){return m_unHandle;}	// ハンドル取得
+	virtual	int			GetType(){return m_nType;}		// タイプ取得
+
+	virtual void		SetWorldMatrix(LPD3DXMATRIX pWorld){}
+	virtual void		SetMaterial(D3DMATERIAL9* pMaterial , LPDIRECT3DTEXTURE9 pTexture){}
+};	
 //=================================================================================
 
 

@@ -11,6 +11,8 @@
 #include "Mesh.h"
 #include "../DirectX/Graphics.h"
 
+#include "../Resource/Shader/Shader.h"
+#include "../System/Register.h"
 //**関数***************************************************************************
 // コンストラクタ
 //*********************************************************************************
@@ -440,20 +442,33 @@ void CMesh::DrawBox(D3DXMATRIX& world, D3DCOLORVALUE color)
 //**関数***************************************************************************
 //	概要	:	メッシュ不透明部分のみ描画
 //*********************************************************************************
-void CMesh::DrawNoAlpha(D3DXMATRIX& world)
+void CMesh::DrawNoAlpha(D3DXMATRIX& world , S_HANDLE nShadeHndle)
 {
 	// ワールド マトリックス設定
-    LPDIRECT3DDEVICE9 pDevice = CGraphics::GetDevice();
-    pDevice->SetTransform(D3DTS_WORLD, &world);
+	LPDIRECT3DDEVICE9 pDevice = CGraphics::GetDevice();
+	CShader* pShade = REGISTER_H_P(nShadeHndle , CShader*);
+	
+	if(nShadeHndle == 0)
+		pDevice->SetTransform(D3DTS_WORLD, &world);
+	else
+		pShade->SetWorldMatrix(&world);
 
-	for (DWORD i = 0; i < m_dwAttr; i++) {
+	for (DWORD i = 0; i < m_dwAttr; i++) 
+	{
 		DWORD id = m_pAttr[i].AttribId;
         // アルファ値をチェック
         D3DMATERIAL9 mtrl = m_pMaterial[id];
 		if (mtrl.Diffuse.a < 1.0f)
 			continue;
-		pDevice->SetMaterial(&mtrl);
-		pDevice->SetTexture(0, m_ppTexture[id]);	// テクスチャを設定
+
+		if(nShadeHndle == 0)
+		{
+			pDevice->SetMaterial(&mtrl);
+			pDevice->SetTexture(0, m_ppTexture[id]);	// テクスチャを設定
+		}
+		else
+			pShade->SetMaterial(&mtrl , m_ppTexture[id]);
+		
 		m_pD3DMesh->DrawSubset(id);								// 描画を実行
 	}
 }
@@ -462,20 +477,33 @@ void CMesh::DrawNoAlpha(D3DXMATRIX& world)
 //**関数***************************************************************************
 //	概要	:	メッシュ半透明部分のみ描画 (アルファ有効化/無効化なし)
 //*********************************************************************************
-void CMesh::DrawAlpha(D3DXMATRIX& world)
+void CMesh::DrawAlpha(D3DXMATRIX& world , S_HANDLE nShadeHndle)
 {
 	// ワールド マトリックス設定
     LPDIRECT3DDEVICE9 pDevice = CGraphics::GetDevice();
-    pDevice->SetTransform(D3DTS_WORLD, &world);
+	CShader* pShade = REGISTER_H_P(nShadeHndle , CShader*);
+	
+	if(nShadeHndle == 0)
+		pDevice->SetTransform(D3DTS_WORLD, &world);
+	else
+		pShade->SetWorldMatrix(&world);
 
-	for (DWORD i = 0; i < m_dwAttr; i++) {
+	for (DWORD i = 0; i < m_dwAttr; i++) 
+	{
 		DWORD id = m_pAttr[i].AttribId;
         // アルファ値をチェック
         D3DMATERIAL9 mtrl = m_pMaterial[id];
 		if (mtrl.Diffuse.a >= 1.0f)
 			continue;
-		pDevice->SetMaterial(&mtrl);
-		pDevice->SetTexture(0, m_ppTexture[id]);	// テクスチャを設定
+
+		if(nShadeHndle == 0)
+		{
+			pDevice->SetMaterial(&mtrl);
+			pDevice->SetTexture(0, m_ppTexture[id]);	// テクスチャを設定
+		}
+		else
+			pShade->SetMaterial(&mtrl , m_ppTexture[id]);
+
 		m_pD3DMesh->DrawSubset(id);					// 描画を実行
 	}
 }

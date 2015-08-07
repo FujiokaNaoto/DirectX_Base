@@ -43,6 +43,9 @@ private:
 	static LPDIRECT3DDEVICE9	m_pDevice;				// Direct3DDevice9 オブジェクト
 	D3DPRESENT_PARAMETERS		m_D3DPP;				// PRESENT PARAMETERS
 
+	// ライト関係
+	D3DLIGHT9	m_Light;								// ライトオブジェクト
+
 	LPD3DXFONT					m_pFont[FONT_MAX];		// D3DXFont オブジェクト
 
 	static D3DXMATRIX			m_MatProj;				// 射影マトリックス
@@ -73,6 +76,11 @@ public:
 	void DrawText(int nX, int nY, LPCTSTR psz , int nFontType ,
 					int nRed , int nGreen , int nBlue , int nAlpha);	// 色情報込みフォント描画
 	
+	// ライト
+	virtual D3DLIGHT9*	GetLight(){return &m_Light;}
+	virtual D3DXVECTOR3	GetLightDir(){return (D3DXVECTOR3)m_Light.Direction;}
+	virtual void		SetLight(D3DLIGHT9 light){m_Light = light;}
+
 private:
 	bool Initialize(HWND hWnd, int nWidth, int nHeight, bool bWindow);
 	void Finalize();

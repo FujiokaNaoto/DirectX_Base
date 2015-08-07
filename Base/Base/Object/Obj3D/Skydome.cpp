@@ -60,6 +60,8 @@ CSkydome*	CSkydome::Create(LPCTSTR meshName , int nScene , int nPriority)
 {
 	CSkydome* pObj = new CSkydome();
 
+	pObj->m_pCamera = MANAGER.GetCamera();
+
 	if(pObj->Init(meshName , DEFAULT_POS , nScene , nPriority))
 		return pObj;
 

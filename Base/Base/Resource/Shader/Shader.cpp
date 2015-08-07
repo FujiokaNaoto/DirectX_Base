@@ -1,32 +1,17 @@
 //**プログラムヘッダ***************************************************************
-//	プログラム概要	:	シェーダマネージャ
+//	プログラム概要	:	シェーダークラス
 //*********************************************************************************
 
 
 //==include部======================================================================
-#include "common.h"
-#include "ShadeManager.h"
-#include "../Resource/Shader/Shader.h"
-#include "Register.h"
-
-#include "../Resource/Shader/ToonShader.h"
-#include "../Resource/Shader/PhongShader.h"
-#include "../Resource/Shader/CookTrranceShader.h"
-#include "../Resource/Shader/BlinnShader.h"
+#include "../../System/common.h"
+#include "Shader.h"
+#include "../../System/Register.h"
 //=================================================================================
 
 
 //==定数・列挙型部=================================================================
-namespace eShadeManager
-{
-	LPCTSTR	FX_NAME = _T("../resource_data/shader/Sharder.fx");
 
-	// 各シェーダのテクニック番号
-	UINT	TECH_PHONG = 0;
-	UINT	TECH_TOON = 1;
-	UINT	TECH_BLINN = 2;
-	UINT	TECH_COOKTRRANCE = 3;
-};
 //=================================================================================
 
 
@@ -41,7 +26,7 @@ namespace eShadeManager
 
 
 //==静的メンバ変数部===============================================================
-CShadeManager*	CShadeManager::m_pInstance = NULL;
+
 //=================================================================================
 
 
@@ -53,104 +38,78 @@ CShadeManager*	CShadeManager::m_pInstance = NULL;
 //**関数***************************************************************************
 //	概要	:	コンストラクタ
 //*********************************************************************************
-CShadeManager::CShadeManager()
+CShader::CShader():
+m_nType(-1),
+m_unHandle(0),
+m_hTech(0),
+m_unPassNum(0),
+m_pFx(NULL)
 {
+	m_unHandle = REGISTER->handle.CreateHandle(this);
 }
 
 
 //**関数***************************************************************************
 //	概要	:	デストラクタ
 //*********************************************************************************
-CShadeManager::~CShadeManager()
+CShader::~CShader()
 {
-}
-
-
-//**関数***************************************************************************
-//	概要	:	生成
-//*********************************************************************************
-CShadeManager* CShadeManager::Create()
-{
-	if(m_pInstance)
-		return m_pInstance;
-
-	m_pInstance = new CShadeManager();
-
-	if(m_pInstance->Init())
-		return m_pInstance;
-
-	SAFE_RELEASE(m_pInstance);
-	return NULL;
-}
-
-
-//**関数***************************************************************************
-//	概要	:	各種シェーダーファイルを生成
-//*********************************************************************************
-bool CShadeManager::Init()
-{
-	// 各シェーダファイル生成
-	CShader*	pShade = NULL;
-
-	// フォン
-	pShade = CPhongShader::Create(eShadeManager::FX_NAME , eShadeType::PHONG , eShadeManager::TECH_PHONG);
-	if(pShade) m_hList.push_back(pShade->GetHandle());
-
-	// ブリン
-	pShade = CBlinnShader::Create(eShadeManager::FX_NAME , eShadeType::BLINN , eShadeManager::TECH_BLINN);
-	if(pShade) m_hList.push_back(pShade->GetHandle());
-
-	// クックトランス
-	pShade = CCookTrranceShader::Create(eShadeManager::FX_NAME , eShadeType::COOKTRRANCE , eShadeManager::TECH_COOKTRRANCE);
-	if(pShade) m_hList.push_back(pShade->GetHandle());
-
-	// トゥーン
-	pShade = CToonShader::Create(eShadeManager::FX_NAME , eShadeType::TOON , eShadeManager::TECH_TOON);
-	if(pShade) m_hList.push_back(pShade->GetHandle());
-
-	return true;
 }
 
 
 //**関数***************************************************************************
 //	概要	:	解放
 //*********************************************************************************
-void CShadeManager::Release()
+void CShader::Release()
 {
-	CShader* pShade = NULL;
+	if(m_pFx) SAFE_RELEASE(m_pFx);
 
-	list<S_HANDLE>::iterator	begin = m_hList.begin();
-	list<S_HANDLE>::iterator	end = m_hList.end();
-
-	while(begin != end)
-	{
-		pShade = REGISTER_H_P((*begin) , CShader*);
-		if(pShade) pShade->Release();
-		begin = m_hList.erase(begin);
-	}
+	delete this;
 }
 
 
 //**関数***************************************************************************
-//	概要	:	指定したシェーダーオブジェのハンドルを返す
+//	概要	:	シェーダ開始
 //*********************************************************************************
-S_HANDLE CShadeManager::GetShadeHandle(int nType)
+UINT CShader::BeginShader()
 {
-	CShader* pShade = NULL;
-
-	list<S_HANDLE>::iterator	begin = m_hList.begin();
-	list<S_HANDLE>::iterator	end = m_hList.end();
-
-	while(begin != end)
-	{
-		pShade = REGISTER_H_P((*begin) , CShader*);
-		if(pShade->GetType() == nType)
-			return pShade->GetHandle();
-
-		begin ++;
-	}
-
 	return 0;
+}
+
+
+//**関数***************************************************************************
+//	概要	:	パス起動
+//*********************************************************************************
+void CShader::BeginPass(UINT nPassNo)
+{
+	m_pFx->BeginPass(nPassNo);
+}
+
+
+//**関数***************************************************************************
+//	概要	:	シェーダ更新
+//*********************************************************************************
+void CShader::UpdateShader()
+{
+
+}
+
+
+//**関数***************************************************************************
+//	概要	:	パスの終了
+//*********************************************************************************
+void CShader::EndPass()
+{
+	m_pFx->EndPass();
+}
+
+
+//**関数***************************************************************************
+//	概要	:	シェーダ終了
+//*********************************************************************************
+void CShader::EndShader()
+{
+	m_pFx->End();
 }
 
 //=================================================================================
