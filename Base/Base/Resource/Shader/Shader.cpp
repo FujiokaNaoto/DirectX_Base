@@ -1,12 +1,12 @@
 //**プログラムヘッダ***************************************************************
-//	プログラム概要	:	スカイドームクラス実装
+//	プログラム概要	:	シェーダークラス
 //*********************************************************************************
 
 
 //==include部======================================================================
-#include "../../System/GameManager.h"
-
-#include "Skydome.h"
+#include "../../System/common.h"
+#include "Shader.h"
+#include "../../System/Register.h"
 //=================================================================================
 
 
@@ -38,92 +38,80 @@
 //**関数***************************************************************************
 //	概要	:	コンストラクタ
 //*********************************************************************************
-CSkydome::CSkydome():
-m_pCamera(NULL)
+CShader::CShader():
+m_nType(-1),
+m_unHandle(0),
+m_hTech(0),
+m_unPassNum(0),
+m_pFx(NULL)
 {
-	m_nRSType = m_nRSTypeLate = eRSType::SKYDOME;
+	m_unHandle = REGISTER->handle.CreateHandle(this);
 }
 
 
 //**関数***************************************************************************
 //	概要	:	デストラクタ
 //*********************************************************************************
-CSkydome::~CSkydome()
+CShader::~CShader()
 {
 }
 
 
 //**関数***************************************************************************
-//	概要	:	生成
+//	概要	:	解放
 //*********************************************************************************
-CSkydome*	CSkydome::Create(LPCTSTR meshName , int nScene , int nPriority)
+void CShader::Release()
 {
-	CSkydome* pObj = new CSkydome();
+	if(m_pFx) SAFE_RELEASE(m_pFx);
 
-	pObj->m_pCamera = MANAGER.GetCamera();
-
-	if(pObj->Init(meshName , DEFAULT_POS , nScene , nPriority))
-		return pObj;
-
-	SAFE_DELETE(pObj);
-	return pObj;
+	delete this;
 }
 
 
 //**関数***************************************************************************
-//	概要	:	アフィン
+//	概要	:	シェーダ開始
 //*********************************************************************************
-void CSkydome::Affine()
+UINT CShader::BeginShader()
 {
-	// カメラ基準の移動のみ行う
-	D3DXMatrixTranslation(&m_Matrix , m_pCamera->GetPos().x , 
-									m_pCamera->GetPos().y , 
-									m_pCamera->GetPos().z);
+	return 0;
 }
 
 
 //**関数***************************************************************************
-//	概要	:	描画
+//	概要	:	パス起動
 //*********************************************************************************
-void CSkydome::SetRS()
+void CShader::BeginPass(UINT nPassNo)
 {
-	CGraphics::SemafoLock();
-
-	LPDIRECT3DDEVICE9 pDevice = MANAGER.GetGraph()->GetDevice();
-
-	pDevice->SetRenderState(D3DRS_ZENABLE , FALSE);
-	pDevice->SetRenderState(D3DRS_LIGHTING , FALSE);
-
-	pDevice->SetRenderState(D3DRS_CULLMODE , D3DCULL_CCW);
-
-	CGraphics::SemafoUnlock();
+	m_pFx->BeginPass(nPassNo);
 }
 
 
 //**関数***************************************************************************
-//	概要	:	描画
+//	概要	:	シェーダ更新
 //*********************************************************************************
-void CSkydome::SetRSLate()
+void CShader::UpdateShader()
 {
-	CGraphics::SemafoLock();
-	LPDIRECT3DDEVICE9 pDevice = MANAGER.GetGraph()->GetDevice();
 
-	pDevice->SetRenderState(D3DRS_ZENABLE , FALSE);
-	pDevice->SetRenderState(D3DRS_LIGHTING , FALSE);
-
-	pDevice->SetRenderState(D3DRS_CULLMODE , D3DCULL_CCW);
-
-	CGraphics::SemafoUnlock();
 }
 
 
 //**関数***************************************************************************
-//	概要	:	描画
+//	概要	:	パスの終了
 //*********************************************************************************
-void CSkydome::Draw()
-{	
-	m_pMesh->Draw(m_Matrix);
+void CShader::EndPass()
+{
+	m_pFx->EndPass();
 }
+
+
+//**関数***************************************************************************
+//	概要	:	シェーダ終了
+//*********************************************************************************
+void CShader::EndShader()
+{
+	m_pFx->End();
+}
+
 //=================================================================================
 //	End of File
 //=================================================================================

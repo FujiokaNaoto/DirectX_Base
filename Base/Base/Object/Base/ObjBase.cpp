@@ -7,6 +7,7 @@
 #include "../../System/GameManager.h"
 #include "../../System/Register.h"
 #include "ObjBase.h"
+#include "../../System/ShadeManager.h"
 //=================================================================================
 
 
@@ -60,6 +61,7 @@ m_nParent(NULL),
 m_nRSType(eRSType::NONE),
 m_nRSTypeLate(eRSType::NONE),
 
+m_nShadeType(eShadeType::NONE),
 m_nStatus(-1)
 {
 	m_nHandle = REGISTER->handle.CreateHandle(this);

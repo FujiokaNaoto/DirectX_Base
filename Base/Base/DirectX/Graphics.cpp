@@ -83,7 +83,8 @@ bool CGraphics::Initialize(HWND hWnd, int nWidth, int nHeight, bool bWindow)
 	m_D3DPP.SwapEffect             = D3DSWAPEFFECT_DISCARD;
 	m_D3DPP.EnableAutoDepthStencil = true;						// Ｚバッファ有効
 	m_D3DPP.AutoDepthStencilFormat = D3DFMT_D24S8;				// Ｚバッファフォーマット
-	if (bWindow) {
+	if (bWindow) 
+	{
 		// ウィンドウモード
 		m_D3DPP.BackBufferFormat           = D3DFMT_UNKNOWN;				// バックバッファ
 		m_D3DPP.FullScreen_RefreshRateInHz = 0;								// リフレッシュレート
@@ -127,15 +128,15 @@ bool CGraphics::Initialize(HWND hWnd, int nWidth, int nHeight, bool bWindow)
 
 	// ライトの設定
 	D3DXVECTOR3	vecDir;					// 方向を指定するベクトル
-	D3DLIGHT9	light;					// ライトオブジェクト
-	ZeroMemory(&light, sizeof(light));
-	light.Type = D3DLIGHT_DIRECTIONAL;	// 平行光源
-	light.Diffuse.r = light.Diffuse.g = light.Diffuse.b = light.Diffuse.a = 1.0f;
-	light.Ambient.r = light.Ambient.g = light.Ambient.b = light.Ambient.a = 0.2f;
-	light.Specular = light.Diffuse;
+	
+	ZeroMemory(&m_Light, sizeof(m_Light));
+	m_Light.Type = D3DLIGHT_DIRECTIONAL;	// 平行光源
+	m_Light.Diffuse.r = m_Light.Diffuse.g = m_Light.Diffuse.b = m_Light.Diffuse.a = 1.0f;
+	m_Light.Ambient.r = m_Light.Ambient.g = m_Light.Ambient.b = m_Light.Ambient.a = 0.2f;
+	m_Light.Specular = m_Light.Diffuse;
 	vecDir = D3DXVECTOR3(1.0f, -1.0f, 1.0f);					// 光の向きを決める
-	D3DXVec3Normalize((D3DXVECTOR3*)&light.Direction, &vecDir);	// 正規化したベクトルを返す
-	m_pDevice->SetLight(0, &light);
+	D3DXVec3Normalize((D3DXVECTOR3*)&m_Light.Direction, &vecDir);	// 正規化したベクトルを返す
+	m_pDevice->SetLight(0, &m_Light);
 	m_pDevice->LightEnable(0, TRUE);	// ライト0を有効
 
 	m_pDevice->SetRenderState(D3DRS_AMBIENTMATERIALSOURCE, D3DMCS_MATERIAL);

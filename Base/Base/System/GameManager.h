@@ -19,6 +19,7 @@ using namespace audiere;
 // オブジェクト
 #include "Camera.h"
 #include "../CalcData/Calc.h"
+#include "ShadeManager.h"
 //=================================================================================
 
 
@@ -94,25 +95,25 @@ namespace eRSType
 class	CGameManager
 {
 private:
-	static	CGameManager*	m_pInstance;	// 本体
+	static	CGameManager*	m_pInstance;
 
-	HWND		m_hWnd;						// ウィンドウハンドル
-	HINSTANCE	m_hInst;					// インスタンスハンドル
+	HWND		m_hWnd;					
+	HINSTANCE	m_hInst;				
 	int			m_nFPS;
-	static	TCHAR		m_szDebug[4096];	// デバック文字バッファ
+	static	TCHAR		m_szDebug[4096];
 
 	// --DirectX--
-	CGraphics*	m_pGraph;					// グラフィッククラス
-	CDXInput*	m_pInput;					// 入力クラス
+	CGraphics*	m_pGraph;							// 描画関係
+	CDXInput*	m_pInput;							// 入力管理
 
 	// --マネージャ--
-	CTextureManage*	m_pTexManage;
-	CMeshManage*	m_pMeshManage;
-	CSceneManage*	m_pSceneManage;
+	CTextureManage*	m_pTexManage;					// テクスチャリソース管理
+	CMeshManage*	m_pMeshManage;					// 3Dオブジェクトリソース管理
+	CSceneManage*	m_pSceneManage;					// シーン切替管理
+	CShadeManager*	m_pShadeManage;					// シェーダ管理
 
 	// --ゲーム内オブジェクト--
 	CCamera*		m_pCamera;
-
 	AudioDevicePtr	m_pAudioDevice;
 	
 
@@ -154,6 +155,7 @@ public:
 	CTextureManage*	GetTexManage(){return m_pTexManage;}		// テクスチャマネージャ取得
 	CMeshManage*	GetMeshManage(){return m_pMeshManage;}		// メッシュマネージャ取得
 	CSceneManage*	GetSceneManage(){return m_pSceneManage;}	// シーンマネージャ取得
+	CShadeManager*	GetShadeManage(){return m_pShadeManage;}	// シェードマネージャ取得
 
 	CCamera*		GetCamera(){return m_pCamera;}				// カメラ取得
 

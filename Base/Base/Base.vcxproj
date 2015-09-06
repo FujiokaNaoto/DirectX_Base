@@ -99,7 +99,11 @@
     <ClCompile Include="Object\PolyLine\PolyLine.cpp" />
     <ClCompile Include="Resource\Mesh.cpp" />
     <ClCompile Include="Resource\MeshManage.cpp" />
-    <ClCompile Include="Resource\Shader.cpp" />
+    <ClCompile Include="Resource\Shader\BlinnShader.cpp" />
+    <ClCompile Include="Resource\Shader\CookTrranceShader.cpp" />
+    <ClCompile Include="Resource\Shader\PhongShader.cpp" />
+    <ClCompile Include="Resource\Shader\Shader.cpp" />
+    <ClCompile Include="Resource\Shader\ToonShader.cpp" />
     <ClCompile Include="Resource\TextureManage.cpp" />
     <ClCompile Include="Scene\Changing.cpp" />
     <ClCompile Include="Scene\GameClear.cpp" />
@@ -141,7 +145,11 @@
     <ClInclude Include="Object\PolyLine\PolyLine.h" />
     <ClInclude Include="Resource\Mesh.h" />
     <ClInclude Include="Resource\MeshManage.h" />
-    <ClInclude Include="Resource\Shader.h" />
+    <ClInclude Include="Resource\Shader\BlinnShader.h" />
+    <ClInclude Include="Resource\Shader\CookTrranceShader.h" />
+    <ClInclude Include="Resource\Shader\PhongShader.h" />
+    <ClInclude Include="Resource\Shader\Shader.h" />
+    <ClInclude Include="Resource\Shader\ToonShader.h" />
     <ClInclude Include="Resource\TextureManage.h" />
     <ClInclude Include="Scene\Changing.h" />
     <ClInclude Include="Scene\GameClear.h" />
@@ -162,6 +170,9 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="audiere.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\resource_data\shader\Sharder.fx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -9,6 +9,7 @@
 #include <d3d9.h>			// DirectX Graphics 関連のヘッダ
 #include <d3dx9.h>			// DirectX Graphics 関連のヘッダ
 #include <dxerr.h>			// DirectX Graphics 関連のヘッダ
+#include "../Object/Base/CHANDLE.h"
 
 struct BVERTEX {
 	D3DXVECTOR3	pos;
@@ -77,8 +78,8 @@ public:
 	void DrawSphere(D3DXMATRIX& world, D3DCOLORVALUE color);
 	void DrawBox(D3DXMATRIX& world, D3DCOLORVALUE color);
 
-	void DrawNoAlpha(D3DXMATRIX& world);
-	void DrawAlpha(D3DXMATRIX& world);
+	void DrawNoAlpha(D3DXMATRIX& world , S_HANDLE nShadeHndle);
+	void DrawAlpha(D3DXMATRIX& world , S_HANDLE nShadeHndle);
 };
 
 //=======================================================================================

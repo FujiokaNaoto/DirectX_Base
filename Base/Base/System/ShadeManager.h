@@ -6,21 +6,61 @@
 //==include部======================================================================
 #include <d3d9.h>
 #include <d3dx9.h>
+#include <list>
+using namespace std;
+#include "../Object/Base/CHANDLE.h"
+
+
 //=================================================================================
 
 
 //==定数・列挙型宣言部=============================================================
-
+namespace eShadeType
+{
+	enum eShade
+	{
+		NONE = 0,
+		PHONG = 1,				// フォン
+		BLINN = 2,				// ブリン
+		COOKTRRANCE = 4,		// クックトランス
+		TOON = 8,				// トゥーン
+		PARAOFF = 16,			// 視差遮蔽マッピング
+	};
+};
 //=================================================================================
 
 
 //==マクロ定義部===================================================================
-
 //=================================================================================
 
 
 //==クラス・構造体宣言部===========================================================
+class CShadeManager
+{
+private:
+	static	CShadeManager*		m_pInstance;
 
+protected:
+	CShadeManager();
+	list<S_HANDLE>		m_hList;
+	
+public:
+	virtual ~CShadeManager();
+
+	// シェーダーマネージャ仕様
+
+	static CShadeManager* Create();										// 初期クリエイト内部で初期化
+	// Instance生成
+
+	virtual bool Init();												// 初期化
+	// 初期化内で各種シェーダーファイルを生成
+
+	virtual void Release();												// 解放関数で各シェーダーを解放
+
+	S_HANDLE	GetShadeHandle(int nType);								// 指定したシェーダーオブジェのハンドルを返す関数
+
+	static	CShadeManager&	GetInstance(){return *m_pInstance;}
+};
 //=================================================================================
 
 

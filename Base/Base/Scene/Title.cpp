@@ -11,6 +11,7 @@
 #include "../System/Register.h"
 #include "../Object/ObjButton/ObjButton.h"
 
+#include "../Object/Obj3D/Skydome.h"
 
 //=================================================================================
 
@@ -19,6 +20,8 @@
 namespace eTitleConst
 {
 	const LPCTSTR	BG = _T("../resource_data/img/Bg.png");
+	const LPCTSTR	MESH = _T("../resource_data/mesh/nanase_pose.x");
+	const LPCTSTR	SKY = _T("../resource_data/mesh/sky.x");
 };
 //=================================================================================
 
@@ -76,7 +79,6 @@ CTitle* CTitle::Create(int nSceneID)
 	}
 	
 	pTitle->m_nSceneID = nSceneID;								// シーンIDセット
-
 	return pTitle;
 }
 
@@ -109,11 +111,23 @@ bool CTitle::Init(void)
 	m_pBgm->play();					// 再生
 	*/
 
-	
-	D3DXVECTOR3 pos = D3DXVECTOR3(SCREEN_WIDTH / 2.0f , SCREEN_HEIGHT / 2.0f , 0.0f);
+
+	D3DXVECTOR3 pos;/* = D3DXVECTOR3(SCREEN_WIDTH / 2.0f , SCREEN_HEIGHT / 2.0f , 0.0f);
 	pBuf = CObj2D::Create(eTitleConst::BG , pos , SCREEN_WIDTH , SCREEN_HEIGHT , m_nSceneID , 0);
 	REGISTER->Entry(pBuf , eOBJSTAGE::BG);
+	*/
 
+
+
+	pos = D3DXVECTOR3(0.0f , 198.0f , -92.0f);
+	CObj3D* pObj3D = CObj3D::Create(eTitleConst::MESH , pos , m_nSceneID , 0);
+	REGISTER->Entry(pObj3D , eOBJSTAGE::OBJ);
+	m_hObj = pObj3D->GetHandle();
+
+	
+	pObj3D = CSkydome::Create(eTitleConst::SKY , m_nSceneID , 0);
+	REGISTER->Entry(pObj3D , eOBJSTAGE::BG);
+	
 
 	return true;
 }
@@ -136,6 +150,8 @@ void CTitle::Uninit(void)
 //*********************************************************************************
 void CTitle::Input()
 {
+	static int nType;
+
 	CDXInput* pInput = MANAGER.GetInput();	
 	// Enterキートリガーで次シーンへ
 	if(pInput->GetKeyTrigger(DIK_RETURN))
@@ -145,15 +161,19 @@ void CTitle::Input()
 		MANAGER.GetSceneManage()->SetNextScene(eScene_ID::MAIN , eChanging::CHANGE_BLACKFEAD);
 	}
 
+	CObj3D* pObj = REGISTER_H_P(m_hObj , CObj3D*);
+	D3DXVECTOR3 pos = pObj->GetPos();
+	if(pInput->GetKeyState(DIK_UP)) pos.y += 0.2f;
+	if(pInput->GetKeyState(DIK_DOWN)) pos.y -= 0.2f;
+	if(pInput->GetKeyState(DIK_RIGHT)) pos.x += 0.2f;
+	if(pInput->GetKeyState(DIK_LEFT)) pos.x -= 0.2f;
+	pObj->SetPos(pos);
 
-	if(pInput->GetKeyTrigger(DIK_N))
+	if(pInput->GetKeyTrigger(DIK_SPACE))
 	{
-		REGISTER_H_P(m_hObj , CObj2D*)->SetDiffuse(0,0,0,255);
-	}
-
-	if(pInput->GetKeyTrigger(DIK_M))
-	{
-		REGISTER_H_P(m_hObj , CObj2D*)->SetDiffuse(255,255,255,255);
+		nType == 0 ? nType = eShadeType::PHONG : nType *= 2;
+		nType > eShadeType::TOON ? nType = 0 : false;
+		pObj->SetShadeType(nType);
 	}
 }
 

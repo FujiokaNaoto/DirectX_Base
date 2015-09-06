@@ -11,6 +11,8 @@
 #include "Mesh.h"
 #include "../DirectX/Graphics.h"
 
+#include "../Resource/Shader/Shader.h"
+#include "../System/Register.h"
 //**関数***************************************************************************
 // コンストラクタ
 //*********************************************************************************
@@ -87,6 +89,44 @@ bool CMesh::Initialize(LPCTSTR pszFName)
 		}
 		m_pD3DMesh = pMeshTmp;
 	}
+
+	// 接ベクトルがない場合は強制的に追加
+	D3DVERTEXELEMENT9 Declaration[MAX_FVF_DECL_SIZE];
+    D3DVERTEXELEMENT9 End = D3DDECL_END();
+    int iElem;
+
+	m_pD3DMesh->GetDeclaration(Declaration);
+    BOOL bHasTangents = FALSE;
+    for (iElem = 0; Declaration[iElem].Stream != End.Stream; iElem++)
+    {
+        if (Declaration[iElem].Usage == D3DDECLUSAGE_TANGENT)
+        {
+            bHasTangents = TRUE;
+            break;
+        }
+    }
+
+    // Update Mesh Semantics if changed
+    if (!bHasTangents)
+    {
+        Declaration[iElem].Stream = 0;
+        Declaration[iElem].Offset = (WORD)m_pD3DMesh->GetNumBytesPerVertex();
+        Declaration[iElem].Type = D3DDECLTYPE_FLOAT3;
+        Declaration[iElem].Method = D3DDECLMETHOD_DEFAULT;
+        Declaration[iElem].Usage = D3DDECLUSAGE_TANGENT;
+        Declaration[iElem].UsageIndex = 0;
+        Declaration[iElem+1] = End;
+        LPD3DXMESH pTempMesh;
+
+		hr = m_pD3DMesh->CloneMesh(D3DXMESH_MANAGED, Declaration, CGraphics::GetDevice() , &pTempMesh);
+        if (SUCCEEDED(hr))
+        {
+			SAFE_RELEASE(m_pD3DMesh);
+			m_pD3DMesh = pTempMesh;
+            //hr = D3DXComputeTangent(m_pMesh, 0, 0, D3DX_DEFAULT, TRUE, NULL);
+			hr = D3DXComputeTangent(m_pD3DMesh , 0, 0, D3DX_DEFAULT, FALSE, NULL);
+        }
+    }
 
 	// 属性テーブルを生成するための最適化
 	hr = m_pD3DMesh->Optimize(D3DXMESHOPT_ATTRSORT, NULL, NULL, NULL, NULL, &pMeshTmp);
@@ -440,20 +480,33 @@ void CMesh::DrawBox(D3DXMATRIX& world, D3DCOLORVALUE color)
 //**関数***************************************************************************
 //	概要	:	メッシュ不透明部分のみ描画
 //*********************************************************************************
-void CMesh::DrawNoAlpha(D3DXMATRIX& world)
+void CMesh::DrawNoAlpha(D3DXMATRIX& world , S_HANDLE nShadeHndle)
 {
 	// ワールド マトリックス設定
-    LPDIRECT3DDEVICE9 pDevice = CGraphics::GetDevice();
-    pDevice->SetTransform(D3DTS_WORLD, &world);
+	LPDIRECT3DDEVICE9 pDevice = CGraphics::GetDevice();
+	CShader* pShade = REGISTER_H_P(nShadeHndle , CShader*);
+	
+	if(nShadeHndle == 0)
+		pDevice->SetTransform(D3DTS_WORLD, &world);
+	else
+		pShade->SetWorldMatrix(&world);
 
-	for (DWORD i = 0; i < m_dwAttr; i++) {
+	for (DWORD i = 0; i < m_dwAttr; i++) 
+	{
 		DWORD id = m_pAttr[i].AttribId;
         // アルファ値をチェック
         D3DMATERIAL9 mtrl = m_pMaterial[id];
 		if (mtrl.Diffuse.a < 1.0f)
 			continue;
-		pDevice->SetMaterial(&mtrl);
-		pDevice->SetTexture(0, m_ppTexture[id]);	// テクスチャを設定
+
+		if(nShadeHndle == 0)
+		{
+			pDevice->SetMaterial(&mtrl);
+			pDevice->SetTexture(0, m_ppTexture[id]);	// テクスチャを設定
+		}
+		else
+			pShade->SetMaterial(&mtrl , m_ppTexture[id]);
+		
 		m_pD3DMesh->DrawSubset(id);								// 描画を実行
 	}
 }
@@ -462,20 +515,33 @@ void CMesh::DrawNoAlpha(D3DXMATRIX& world)
 //**関数***************************************************************************
 //	概要	:	メッシュ半透明部分のみ描画 (アルファ有効化/無効化なし)
 //*********************************************************************************
-void CMesh::DrawAlpha(D3DXMATRIX& world)
+void CMesh::DrawAlpha(D3DXMATRIX& world , S_HANDLE nShadeHndle)
 {
 	// ワールド マトリックス設定
     LPDIRECT3DDEVICE9 pDevice = CGraphics::GetDevice();
-    pDevice->SetTransform(D3DTS_WORLD, &world);
+	CShader* pShade = REGISTER_H_P(nShadeHndle , CShader*);
+	
+	if(nShadeHndle == 0)
+		pDevice->SetTransform(D3DTS_WORLD, &world);
+	else
+		pShade->SetWorldMatrix(&world);
 
-	for (DWORD i = 0; i < m_dwAttr; i++) {
+	for (DWORD i = 0; i < m_dwAttr; i++) 
+	{
 		DWORD id = m_pAttr[i].AttribId;
         // アルファ値をチェック
         D3DMATERIAL9 mtrl = m_pMaterial[id];
 		if (mtrl.Diffuse.a >= 1.0f)
 			continue;
-		pDevice->SetMaterial(&mtrl);
-		pDevice->SetTexture(0, m_ppTexture[id]);	// テクスチャを設定
+
+		if(nShadeHndle == 0)
+		{
+			pDevice->SetMaterial(&mtrl);
+			pDevice->SetTexture(0, m_ppTexture[id]);	// テクスチャを設定
+		}
+		else
+			pShade->SetMaterial(&mtrl , m_ppTexture[id]);
+
 		m_pD3DMesh->DrawSubset(id);					// 描画を実行
 	}
 }

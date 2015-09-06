@@ -65,39 +65,46 @@ public:
 
 	virtual	void	Affine();										// アフィン変換
 
-
 	// 比較関数を定義
 	static bool asc( const CObjBase* left, const CObjBase* right );
 
 	// --ゲットセット--
-	virtual bool	GetUseFlg(){return m_bUseFlg;}					// 使用判定フラグ取得
-	virtual void	SetUpdateFlg(bool bFlg){m_bUseFlg = bFlg;}		// 使用判定フラグセット
+	// 使用判定フラグ
+	virtual bool	GetUseFlg(){return m_bUseFlg;}
+	virtual void	SetUpdateFlg(bool bFlg){m_bUseFlg = bFlg;}		
+	// 描画タイミングフラグ
+	virtual bool	GetDrawLateFlg(){return m_bDrawLate;}			
+	virtual void	SetDrawLateFlg(bool bFlg){m_bDrawLate = bFlg;}	
 
-	virtual bool	GetDrawLateFlg(){return m_bDrawLate;}			// 描画タイミングフラグ取得
-	virtual void	SetDrawLateFlg(bool bFlg){m_bDrawLate = bFlg;}	// 描画タイミングフラグセット
-
-	virtual bool	GetDeleteFlg(){return m_bDeleteFlg;}			// 削除フラグ取得
-	virtual void	SetDeleteFlg(bool bFlg){m_bDeleteFlg = bFlg;}	// 削除フラグセット
+	// 削除フラグ、trueにするとレジスタから削除される
+	virtual bool	GetDeleteFlg(){return m_bDeleteFlg;}			
+	virtual void	SetDeleteFlg(bool bFlg){m_bDeleteFlg = bFlg;}	
 		
-	virtual UINT	GetObjID(){return m_nObjID;}					// オブジェクトのユニークID取得
+	virtual UINT	GetObjID(){return m_nObjID;}					
 
-	virtual UINT	GetClassID(){return m_nClassID;}				// 所属クラスのID取得
-	virtual void	SetClassID(UINT nID){m_nClassID = nID;}			// 所属クラスのIDをセット
+	// 所属クラスのID、これを元にレジスタから検索をかけられる
+	virtual UINT	GetClassID(){return m_nClassID;}				
+	virtual void	SetClassID(UINT nID){m_nClassID = nID;}			
 
-	virtual UINT	GetRS(){return m_nRSType;}						// レンダーステートのタイプ取得
-	virtual UINT	GetRSLate(){return m_nRSTypeLate;}				// 後描画レンダーステートのタイプ取得
+	// レンダーステート
+	virtual UINT	GetRS(){return m_nRSType;}						
+	virtual UINT	GetRSLate(){return m_nRSTypeLate;}				
 
-	virtual int		GetSceneID(){return m_nSceneID;}				// 所属シーンのID取得
-	virtual void	SetSceneID(int nID){m_nSceneID = nID;}			// 所属シーンのIDをセット
+	// 所属シーンを示すID、シーンの切り替わり時に該当シーンのオブジェクトは削除される
+	virtual int		GetSceneID(){return m_nSceneID;}				
+	virtual void	SetSceneID(int nID){m_nSceneID = nID;}
 
-	virtual int		GetStageID(){return m_nStageID;}				// 所属ステージのID取得
-	virtual void	SetStageID(int nID){m_nStageID = nID;}			// 所属ステージのIDをセット
+	// 所属ステージ、更新リストのステージ分け用
+	virtual int		GetStageID(){return m_nStageID;}
+	virtual void	SetStageID(int nID){m_nStageID = nID;}	
 
-	virtual int		GetDrawID(){return m_nDrawID;}					// 所属ステージのID取得
-	virtual void	SetDrawID(int nID){m_nDrawID = nID;}			// 所属ステージのIDをセット
+	// 描画ステージ、更新順と描画順を分けるためのID
+	virtual int		GetDrawID(){return m_nDrawID;}
+	virtual void	SetDrawID(int nID){m_nDrawID = nID;}
 
-	virtual UINT	GetPriority(){return m_nPriority;}				// プライオリティ取得
-	virtual void	SetPriority(UINT nPri){m_nPriority = nPri;}		// プライオリティセット
+	// ステージ内のプライオリティを取得
+	virtual UINT	GetPriority(){return m_nPriority;}			
+	virtual void	SetPriority(UINT nPri){m_nPriority = nPri;}	
 
 	virtual int		GetState(){return m_nStatus;}
 	virtual void	SetState(int nState){m_nStatus = nState;}
@@ -106,6 +113,10 @@ public:
 	virtual S_HANDLE	GetHandle(){return m_nHandle;}
 	virtual S_HANDLE	GetParent(){return m_nParent;}
 	virtual void		SetParent(S_HANDLE handle){m_nParent = handle;}
+
+	// シェーダタイプ
+	virtual int		GetShadeType(){return m_nShadeType;}
+	virtual void	SetShadeType(int nType){m_nShadeType = nType;}
 
 	// アフィン系
 	virtual D3DXVECTOR3	GetPos(){return m_Pos;}						// 座標取得
@@ -138,6 +149,8 @@ protected:
 	UINT	m_nRSType;												// レンダーステートタイプ
 	UINT	m_nRSTypeLate;											// 後描画用レンダーステートタイプ
 
+	int		m_nShadeType;											// 仕様シェーダをビットでまとめて加工
+
 	int		m_nSceneID;												// シーンを示すID
 	int		m_nStageID;												// 所属ステージを示すID
 	int		m_nDrawID;												// 所属描画ステージを示すID
@@ -165,10 +178,6 @@ protected:
 	bool	m_bDeleteFlg;											// 削除フラグ
 };
 //=================================================================================
-
-
-
-
 //=================================================================================
 //	End of File
 //=================================================================================

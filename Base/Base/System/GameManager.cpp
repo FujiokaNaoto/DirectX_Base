@@ -41,6 +41,7 @@ CGameManager::CGameManager():
 	m_pTexManage(NULL),
 	m_pMeshManage(NULL),
 	m_pSceneManage(NULL),
+	m_pShadeManage(NULL),
 	m_pCamera(NULL),
 	
 	m_hWnd(NULL) , 
@@ -108,6 +109,14 @@ CGameManager* CGameManager::Create(HWND hWnd , HINSTANCE hInst , bool bWindow)
 	{
 		SAFE_RELEASE(m_pInstance);
 		return NULL;												// 生成失敗の時はプログラム終了
+	}
+
+	// シェーダマネージャ
+	if(!m_pInstance->m_pShadeManage) m_pInstance->m_pShadeManage = CShadeManager::Create();
+	if(!m_pInstance->m_pShadeManage)
+	{
+		SAFE_RELEASE(m_pInstance->m_pShadeManage);
+		return NULL;
 	}
 
 	// カメラ
@@ -226,18 +235,19 @@ void CGameManager::Draw()
 void CGameManager::Release()
 {
 	// 各オブジェクト解放
-	if(m_pGraph) SAFE_RELEASE(m_pGraph);				// グラフィッククラス解放
-	if(m_pInput) SAFE_RELEASE(m_pInput);				// 入力クラス解放
+	if(m_pGraph) SAFE_RELEASE(m_pGraph);			
+	if(m_pInput) SAFE_RELEASE(m_pInput);			
 		
 	// マネージャ
-	if(m_pTexManage) SAFE_RELEASE(m_pTexManage);		// テクスチャマネージャ解放
-	if(m_pMeshManage) SAFE_RELEASE(m_pMeshManage);		// メッシュマネージャ解放
-	if(m_pSceneManage) SAFE_RELEASE(m_pSceneManage);	// シーンマネージャ解放
+	if(m_pTexManage) SAFE_RELEASE(m_pTexManage);	
+	if(m_pMeshManage) SAFE_RELEASE(m_pMeshManage);	
+	if(m_pSceneManage) SAFE_RELEASE(m_pSceneManage);
+	if(m_pShadeManage) SAFE_RELEASE(m_pShadeManage);
 
-	if(m_pCamera)	SAFE_RELEASE(m_pCamera);			// カメラ解放
+	if(m_pCamera)	SAFE_RELEASE(m_pCamera);		
 
-
-	REGISTER->Cleanup();								// オブジェ管理リストを解放
+	// 登録残りオブジェクトを解放
+	REGISTER->Cleanup();							
 
 	SAFE_DELETE(m_pInstance);							// 自分を削除
 }
