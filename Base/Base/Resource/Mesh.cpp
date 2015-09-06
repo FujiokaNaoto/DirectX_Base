@@ -90,6 +90,44 @@ bool CMesh::Initialize(LPCTSTR pszFName)
 		m_pD3DMesh = pMeshTmp;
 	}
 
+	// 接ベクトルがない場合は強制的に追加
+	D3DVERTEXELEMENT9 Declaration[MAX_FVF_DECL_SIZE];
+    D3DVERTEXELEMENT9 End = D3DDECL_END();
+    int iElem;
+
+	m_pD3DMesh->GetDeclaration(Declaration);
+    BOOL bHasTangents = FALSE;
+    for (iElem = 0; Declaration[iElem].Stream != End.Stream; iElem++)
+    {
+        if (Declaration[iElem].Usage == D3DDECLUSAGE_TANGENT)
+        {
+            bHasTangents = TRUE;
+            break;
+        }
+    }
+
+    // Update Mesh Semantics if changed
+    if (!bHasTangents)
+    {
+        Declaration[iElem].Stream = 0;
+        Declaration[iElem].Offset = (WORD)m_pD3DMesh->GetNumBytesPerVertex();
+        Declaration[iElem].Type = D3DDECLTYPE_FLOAT3;
+        Declaration[iElem].Method = D3DDECLMETHOD_DEFAULT;
+        Declaration[iElem].Usage = D3DDECLUSAGE_TANGENT;
+        Declaration[iElem].UsageIndex = 0;
+        Declaration[iElem+1] = End;
+        LPD3DXMESH pTempMesh;
+
+		hr = m_pD3DMesh->CloneMesh(D3DXMESH_MANAGED, Declaration, CGraphics::GetDevice() , &pTempMesh);
+        if (SUCCEEDED(hr))
+        {
+			SAFE_RELEASE(m_pD3DMesh);
+			m_pD3DMesh = pTempMesh;
+            //hr = D3DXComputeTangent(m_pMesh, 0, 0, D3DX_DEFAULT, TRUE, NULL);
+			hr = D3DXComputeTangent(m_pD3DMesh , 0, 0, D3DX_DEFAULT, FALSE, NULL);
+        }
+    }
+
 	// 属性テーブルを生成するための最適化
 	hr = m_pD3DMesh->Optimize(D3DXMESHOPT_ATTRSORT, NULL, NULL, NULL, NULL, &pMeshTmp);
 	if (SUCCEEDED(hr)) {

@@ -13,6 +13,7 @@
 #include "../../Resource/Shader/BlinnShader.h"
 #include "../../Resource/Shader/CookTrranceShader.h"
 #include "../../Resource/Shader/ToonShader.h"
+#include "../../Resource/Shader/ParaOff.h"
 //=================================================================================
 
 
@@ -267,12 +268,32 @@ void CObj3D::Draw()
 		}
 		pShade->EndShader();
 	}
+	else if(m_nShadeType & eShadeType::PARAOFF && MANAGER.GetShadeManage()->GetShadeHandle(eShadeType::PARAOFF))
+	{
+		CParaOff* pShade = REGISTER_H_P(MANAGER.GetShadeManage()->GetShadeHandle(eShadeType::PARAOFF) , CParaOff*);
+
+		
+		pShade->SetCamera(&pCamera->GetPos() , &pCamera->GetMatrixView() , &MANAGER.GetGraph()->GetMatProj());
+		pShade->SetLight( (D3DXVECTOR3*)&MANAGER.GetGraph()->GetLight()->Direction);
+		
+		UINT uPass = pShade->BeginShader();
+		for(UINT uNo = 0; uNo  < uPass ; uNo ++)
+		{
+			pShade->BeginPass(uNo);
+			pDevice->SetTransform(D3DTS_WORLD, &m_Matrix);
+			m_pMesh->DrawNoAlpha(m_Matrix , pShade->GetHandle());
+			pShade->EndPass();
+		}
+		pShade->EndShader();
+	}
 	// シェーダを使う予定だったがシェーダが読み込めていなかった時はハードウェア描画を行う
 	else
 	{
 		//pDevice->SetTransform(D3DTS_WORLD, &m_Matrix);
 		m_pMesh->DrawNoAlpha(m_Matrix , 0);
 	}
+
+	
 
 	CGraphics::SemafoUnlock();
 }
@@ -369,6 +390,24 @@ void CObj3D::DrawLate()
 		}
 		pShade->EndShader();
 	}
+	else if(m_nShadeType & eShadeType::PARAOFF && MANAGER.GetShadeManage()->GetShadeHandle(eShadeType::PARAOFF))
+	{
+		CParaOff* pShade = REGISTER_H_P(MANAGER.GetShadeManage()->GetShadeHandle(eShadeType::PARAOFF) , CParaOff*);
+		
+		pShade->SetCamera(&pCamera->GetPos() , &pCamera->GetMatrixView() , &MANAGER.GetGraph()->GetMatProj());
+		pShade->SetLight( (D3DXVECTOR3*)&MANAGER.GetGraph()->GetLight()->Direction);
+
+		UINT uPass = pShade->BeginShader();
+		for(UINT uNo = 0; uNo  < uPass ; uNo ++)
+		{
+			pShade->BeginPass(uNo);
+			pDevice->SetTransform(D3DTS_WORLD, &m_Matrix);
+			m_pMesh->DrawNoAlpha(m_Matrix , pShade->GetHandle());
+			pShade->EndPass();
+		}
+		pShade->EndShader();
+	}
+
 	// シェーダを使う予定だったがシェーダが読み込めていなかった時はハードウェア描画を行う
 	else
 	{

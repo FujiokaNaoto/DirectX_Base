@@ -13,6 +13,7 @@
 #include "../Resource/Shader/PhongShader.h"
 #include "../Resource/Shader/CookTrranceShader.h"
 #include "../Resource/Shader/BlinnShader.h"
+#include "../Resource/Shader/ParaOff.h"
 //=================================================================================
 
 
@@ -20,12 +21,14 @@
 namespace eShadeManager
 {
 	LPCTSTR	FX_NAME = _T("../resource_data/shader/Sharder.fx");
+	LPCTSTR FX_BUMP = _T("../resource_data/shader/ParallaxMap.fx");
 
 	// 各シェーダのテクニック番号
 	UINT	TECH_PHONG = 0;
 	UINT	TECH_TOON = 1;
 	UINT	TECH_BLINN = 2;
 	UINT	TECH_COOKTRRANCE = 3;
+	UINT	TECH_PARAOFF = 2;
 };
 //=================================================================================
 
@@ -106,6 +109,10 @@ bool CShadeManager::Init()
 
 	// トゥーン
 	pShade = CToonShader::Create(eShadeManager::FX_NAME , eShadeType::TOON , eShadeManager::TECH_TOON);
+	if(pShade) m_hList.push_back(pShade->GetHandle());
+
+	// 視差遮蔽マッピング
+	pShade = CParaOff::Create(eShadeManager::FX_BUMP , eShadeType::PARAOFF , eShadeManager::TECH_PARAOFF);
 	if(pShade) m_hList.push_back(pShade->GetHandle());
 
 	return true;

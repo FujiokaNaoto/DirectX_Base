@@ -20,10 +20,11 @@ namespace eShadeType
 	enum eShade
 	{
 		NONE = 0,
-		PHONG = 1,
-		BLINN = 2,
-		COOKTRRANCE = 4,
-		TOON = 8,
+		PHONG = 1,				// フォン
+		BLINN = 2,				// ブリン
+		COOKTRRANCE = 4,		// クックトランス
+		TOON = 8,				// トゥーン
+		PARAOFF = 16,			// 視差遮蔽マッピング
 	};
 };
 //=================================================================================
